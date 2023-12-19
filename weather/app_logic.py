@@ -38,10 +38,10 @@ def save_measurement(
 
 
 def local_weather():
-    # The sequence itself is App logic (Process / Use Case / User Story)
+    # App logic (Use Case)
     # Still has low-level dependencies
-    # Additionally has initialization logic
-    # Still is untestable
+    # Additionally has new initialization logic
+    # Still untestable
 
     ip_address = web_io.get_my_ip() # IO
     city = web_io.get_city_by_ip(ip_address) # IO
