@@ -1,24 +1,39 @@
 import json
+from typing import Any
 import requests
 from pathlib import Path
 from datetime import datetime, timedelta
+from dataclasses import is_dataclass, asdict
 
-def local_weather():
-    # First, get the IP
+from typings import Measurement, HistoryCityEntry, History, TemperatureDiff
+
+# IO logic: save history of measurements
+class DatetimeJSONEncoder(json.JSONEncoder):
+    def default(self, o: Any) -> Any:
+        if isinstance(o, datetime):
+            return o.isoformat()
+        elif is_dataclass(o):
+            return asdict(o)
+        return super().default(o)
+
+def get_my_ip() -> str:
+    # IO: load IP from HTTP service
     url = "https://api64.ipify.org?format=json"
     response = requests.get(url).json()
-    ip_address = response["ip"]
+    return response["ip"]
 
-    # Using the IP, determine the city
+def get_city_by_ip(ip_address: str) -> str:
+    # IO: load city by IP from HTTP service
     url = f"https://ipinfo.io/{ip_address}/json"
     response = requests.get(url).json()
-    city = response["city"]
+    return response["city"]
 
+def measure_temperature(city: str) -> Measurement:
+    # IO: Load API key from file
     with open("secrets.json", "r", encoding="utf-8") as file:
         owm_api_key = json.load(file)["openweathermap.org"]
 
-
-    # Hit up a weather service for weather in that city
+    # IO: load measurement from weather service
     url = (
         "https://api.openweathermap.org/data/2.5/weather?q={0}&"
         "units=metric&lang=ru&appid={1}"
@@ -26,47 +41,74 @@ def local_weather():
     weather_data = requests.get(url).json()
     temperature = weather_data["main"]["temp"]
     temperature_feels = weather_data["main"]["feels_like"]
+    return Measurement(
+        city=city,
+        when=datetime.now(),
+        temp=temperature,
+        feels=temperature_feels
+    )
 
-    # If past measurements have already been taken, compare them to current results
-    has_previous = False
-    history = {}
+def load_history() -> History:
+    # IO: load history from file
     history_path = Path("history.json")
     if history_path.exists():
         with open(history_path, "r", encoding="utf-8") as file:
-            history = json.load(file)
-        record = history.get(city)
-        if record is not None:
-            has_previous = True
-            last_date = datetime.fromisoformat(record["when"])
-            last_temp = record["temp"]
-            last_feels = record["feels"]
-            diff = temperature - last_temp
-            diff_feels = temperature_feels - last_feels
+            history_by_city = json.load(file)
+            return {
+                city: HistoryCityEntry(
+                    when=datetime.fromisoformat(record["when"]),
+                    temp=record["temp"],
+                    feels=record["feels"]
+                ) for city, record in history_by_city.items()
+            }
+    return {}
 
-    # Write down the current result if enough time has passed
-    now = datetime.now()
-    if not has_previous or (now - last_date) > timedelta(hours=6):
-        record = {
-            "when": datetime.now().isoformat(),
-            "temp": temperature,
-            "feels": temperature_feels
-        }
-        history[city] = record
+def get_temp_diff(history: History, measurement: Measurement) -> TemperatureDiff|None:
+    # App logic: calculate temperature difference
+    entry = history.get(measurement.city)
+    if entry is not None:
+        return TemperatureDiff(
+            when=entry.when,
+            temp=measurement.temp - entry.temp,
+            feels=measurement.feels - entry.feels
+        )
+
+def save_measurement(history: History, measurement: Measurement, diff: TemperatureDiff|None):
+    # App logic: check if should save the measurement
+    if diff is None or (measurement.when - diff.when) > timedelta(hours=6):
+        # IO: save new measurement to file
+        new_record = HistoryCityEntry(
+            when=measurement.when,
+            temp=measurement.temp,
+            feels=measurement.feels
+        )
+        history[measurement.city] = new_record
+        history_path = Path("history.json")
         with open(history_path, "w", encoding="utf-8") as file:
-            json.dump(history, file)
+            json.dump(history, file, cls=DatetimeJSONEncoder)
 
-    # Print the result
+def print_temperature(measurement: Measurement, diff: TemperatureDiff|None):
+    # IO: format and print message to user
     msg = (
-        f"Temperature in {city}: {temperature:.0f} °C\n"
-        f"Feels like {temperature_feels:.0f} °C"
+        f"Temperature in {measurement.city}: {measurement.temp:.0f} °C\n"
+        f"Feels like {measurement.feels:.0f} °C"
     )
-    if has_previous:
-        formatted_date = last_date.strftime("%c")
+    if diff is not None:
+        last_measurement_time = diff.when.strftime("%c")
         msg += (
-            f"\nLast measurement taken on {formatted_date}\n"
-            f"Difference since then: {diff:.0f} (feels {diff_feels:.0f})"
+            f"\nLast measurement taken on {last_measurement_time}\n"
+            f"Difference since then: {diff.temp:.0f} (feels {diff.feels:.0f})"
         )
     print(msg)
+
+def local_weather():
+    ip_address = get_my_ip()
+    city = get_city_by_ip(ip_address)
+    measurement = measure_temperature(city)
+    history = load_history()
+    diff = get_temp_diff(history, measurement)
+    save_measurement(history, measurement, diff)
+    print_temperature(measurement, diff)
 
 if __name__ == "__main__":
     local_weather()
