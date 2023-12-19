@@ -1,0 +1,5 @@
+[tool.pytest.ini_options]
+markers = [
+    "slow: mark a test that performs slow IO operations",
+    "fast: mark a fast test that isn't bound to any IO operation",
+]
