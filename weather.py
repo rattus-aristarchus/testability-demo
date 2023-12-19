@@ -29,31 +29,29 @@ def local_weather():
 
     # If past measurements have already been taken, compare them to current results
     has_previous = False
-    history = []
+    history = {}
     history_path = Path("history.json")
     if history_path.exists():
         with open(history_path, "r", encoding="utf-8") as file:
             history = json.load(file)
-        for record in reversed(history):
-            if record["city"] == city:
-                has_previous = True
-                last_date = datetime.fromisoformat(record["datetime"])
-                last_temp = record["temp"]
-                last_feels = record["feels"]
-                diff = temperature - last_temp
-                diff_feels = temperature_feels - last_feels
-                break
+        record = history.get(city)
+        if record is not None:
+            has_previous = True
+            last_date = datetime.fromisoformat(record["when"])
+            last_temp = record["temp"]
+            last_feels = record["feels"]
+            diff = temperature - last_temp
+            diff_feels = temperature_feels - last_feels
 
     # Write down the current result if enough time has passed
     now = datetime.now()
     if not has_previous or (now - last_date) > timedelta(hours=6):
         record = {
-            "city": city,
-            "datetime": datetime.now().isoformat(),
+            "when": datetime.now().isoformat(),
             "temp": temperature,
             "feels": temperature_feels
         }
-        history.append(record)
+        history[city] = record
         with open(history_path, "w", encoding="utf-8") as file:
             json.dump(history, file)
 
@@ -63,8 +61,9 @@ def local_weather():
         f"Feels like {temperature_feels:.0f} °C"
     )
     if has_previous:
+        formatted_date = last_date.strftime("%c")
         msg += (
-            f"\nLast measurement taken on {last_date}\n"
+            f"\nLast measurement taken on {formatted_date}\n"
             f"Difference since then: {diff:.0f} (feels {diff_feels:.0f})"
         )
     print(msg)
