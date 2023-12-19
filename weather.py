@@ -24,8 +24,8 @@ def local_weather():
         "units=metric&lang=ru&appid={1}"
     ).format(city, owm_api_key)
     weather_data = requests.get(url).json()
-    temperature = round(weather_data["main"]["temp"])
-    temperature_feels = round(weather_data["main"]["feels_like"])
+    temperature = weather_data["main"]["temp"]
+    temperature_feels = weather_data["main"]["feels_like"]
 
     # If past measurements have already been taken, compare them to current results
     has_previous = False
@@ -59,13 +59,13 @@ def local_weather():
 
     # Print the result
     msg = (
-        f"Temperature in {city}: {str(temperature)} °C\n"
-        f"Feels like {str(temperature_feels)} °C"
+        f"Temperature in {city}: {temperature:.0f} °C\n"
+        f"Feels like {temperature_feels:.0f} °C"
     )
     if has_previous:
         msg += (
             f"\nLast measurement taken on {last_date}\n"
-            f"Difference since then: {str(diff)} (feels {str(diff_feels)})"
+            f"Difference since then: {diff:.0f} (feels {diff_feels:.0f})"
         )
     print(msg)
 
