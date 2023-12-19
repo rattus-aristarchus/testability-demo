@@ -102,13 +102,14 @@ def print_temperature(measurement: Measurement, diff: TemperatureDiff|None):
     print(msg)
 
 def local_weather():
-    ip_address = get_my_ip()
-    city = get_city_by_ip(ip_address)
-    measurement = measure_temperature(city)
-    history = load_history()
-    diff = get_temp_diff(history, measurement)
-    save_measurement(history, measurement, diff)
-    print_temperature(measurement, diff)
+    # App logic (Use Case)
+    ip_address = get_my_ip() # IO
+    city = get_city_by_ip(ip_address) # IO
+    measurement = measure_temperature(city) # IO
+    history = load_history() # IO
+    diff = get_temp_diff(history, measurement) # App
+    save_measurement(history, measurement, diff) # App, IO
+    print_temperature(measurement, diff) # IO
 
 if __name__ == "__main__":
     local_weather()
