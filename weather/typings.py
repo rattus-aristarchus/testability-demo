@@ -28,7 +28,10 @@ class TemperatureDiff:
     feels: float
 
 
+GetIPFunction: TypeAlias = Callable[[], str]
+GetCityFunction: TypeAlias = Callable[[str], str]
 LoadCityFunction: TypeAlias = Callable[[str], HistoryCityEntry | None]
 LoadSecretFunction: TypeAlias = Callable[[str], str]
 MeasureTemperatureFunction: TypeAlias = Callable[[str], Measurement]
 SaveCityFunction: TypeAlias = Callable[[str, HistoryCityEntry], None]
+ShowTemperatureFunction: TypeAlias = Callable[[Measurement, TemperatureDiff], None]

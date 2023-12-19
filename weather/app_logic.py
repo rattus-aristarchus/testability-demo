@@ -1,14 +1,15 @@
 from datetime import timedelta
 from weather.typings import (
+    GetCityFunction,
+    GetIPFunction,
+    LoadCityFunction,
+    MeasureTemperatureFunction,
     Measurement,
+    ShowTemperatureFunction,
     TemperatureDiff,
     SaveCityFunction,
     HistoryCityEntry,
 )
-
-import weather.console_io as console_io
-import weather.file_io as file_io
-import weather.web_io as web_io
 
 
 def get_temp_diff(
@@ -34,30 +35,26 @@ def save_measurement(
             temp=measurement.temp,
             feels=measurement.feels
         )
-        save_city(measurement.city, new_record)
+        save_city(measurement.city, new_record) # injected IO
 
 
-def local_weather():
+def local_weather(
+    get_my_ip: GetIPFunction,
+    get_city_by_ip: GetCityFunction,
+    measure_temperature: MeasureTemperatureFunction,
+    load_last_measurement: LoadCityFunction,
+    save_city_measurement: SaveCityFunction,
+    show_temperature: ShowTemperatureFunction,
+):
     # App logic (Use Case)
-    # Still has low-level dependencies
-    # Additionally has new initialization logic
-    # Still untestable
+    # Low-level dependencies are injected at runtime
+    # Initialization logic is in __init__.py now
+    # Can be tested with dummies, stubs and spies!
 
-    ip_address = web_io.get_my_ip() # IO
-    city = web_io.get_city_by_ip(ip_address) # IO
-
-    # Initialization
-    measure_temperature = web_io.init_temperature_service(file_io.load_secret)
-
-    measurement = measure_temperature(city) # IO
-
-    # Initialization
-    load_last_measurement, save_city_measurement =\
-        file_io.initialize_history_io()
-
-    last_measurement = load_last_measurement(city) # IO
-
+    ip_address = get_my_ip() # injected IO
+    city = get_city_by_ip(ip_address) # injected IO
+    measurement = measure_temperature(city) # injected IO
+    last_measurement = load_last_measurement(city) # injected IO
     diff = get_temp_diff(last_measurement, measurement) # App
-    save_measurement(save_city_measurement, measurement, diff) # App
-
-    console_io.print_temperature(measurement, diff) # IO
+    save_measurement(save_city_measurement, measurement, diff) # App (with injected IO)
+    show_temperature(measurement, diff) # injected IO
