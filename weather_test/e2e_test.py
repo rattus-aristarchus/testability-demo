@@ -1,7 +1,7 @@
 import re
 import pytest
 
-from weather.app_logic import local_weather
+from weather import local_weather
 
 
 pytestmark = [pytest.mark.slow]
