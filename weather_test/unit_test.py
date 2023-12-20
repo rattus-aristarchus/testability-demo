@@ -297,3 +297,22 @@ def test_measurement_with_diff_is_shown(measurement):
         temp=-2,
         feels=2,
     )
+
+
+
+def test_app_crash_if_no_city(measurement):
+    def get_ip_stub(): return "1.2.3.4"
+    def get_city_stub(*_): return None
+    def dummy(*_): raise NotImplementedError()
+
+    with pytest.raises(ValueError) as e:
+        local_weather(
+            get_ip_stub,
+            get_city_stub,
+            dummy,
+            dummy,
+            dummy,
+            dummy,
+        )
+
+    assert str(e.value) == "Cannot determine the city"

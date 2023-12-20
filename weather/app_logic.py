@@ -53,6 +53,8 @@ def local_weather(
 
     ip_address = get_my_ip() # injected IO
     city = get_city_by_ip(ip_address) # injected IO
+    if city is None:
+        raise ValueError("Cannot determine the city")
     measurement = measure_temperature(city) # injected IO
     last_measurement = load_last_measurement(city) # injected IO
     diff = get_temp_diff(last_measurement, measurement) # App
