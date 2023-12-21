@@ -7,6 +7,7 @@ from dataclasses import is_dataclass, asdict
 
 from typings import Measurement, HistoryCityEntry, History, TemperatureDiff
 
+
 # IO logic: save history of measurements
 class DatetimeJSONEncoder(json.JSONEncoder):
     def default(self, o: Any) -> Any:
@@ -16,17 +17,20 @@ class DatetimeJSONEncoder(json.JSONEncoder):
             return asdict(o)
         return super().default(o)
 
+
 def get_my_ip() -> str:
     # IO: load IP from HTTP service
     url = "https://api64.ipify.org?format=json"
     response = requests.get(url).json()
     return response["ip"]
 
+
 def get_city_by_ip(ip_address: str) -> str:
     # IO: load city by IP from HTTP service
     url = f"https://ipinfo.io/{ip_address}/json"
     response = requests.get(url).json()
     return response["city"]
+
 
 def measure_temperature(city: str) -> Measurement:
     # IO: Load API key from file
@@ -48,6 +52,7 @@ def measure_temperature(city: str) -> Measurement:
         feels=temperature_feels
     )
 
+
 def load_history() -> History:
     # IO: load history from file
     history_path = Path("history.json")
@@ -63,6 +68,7 @@ def load_history() -> History:
             }
     return {}
 
+
 def get_temp_diff(history: History, measurement: Measurement) -> TemperatureDiff|None:
     # App logic: calculate temperature difference
     entry = history.get(measurement.city)
@@ -72,6 +78,7 @@ def get_temp_diff(history: History, measurement: Measurement) -> TemperatureDiff
             temp=measurement.temp - entry.temp,
             feels=measurement.feels - entry.feels
         )
+
 
 def save_measurement(history: History, measurement: Measurement, diff: TemperatureDiff|None):
     # App logic: check if should save the measurement
@@ -87,6 +94,7 @@ def save_measurement(history: History, measurement: Measurement, diff: Temperatu
         with open(history_path, "w", encoding="utf-8") as file:
             json.dump(history, file, cls=DatetimeJSONEncoder)
 
+
 def print_temperature(measurement: Measurement, diff: TemperatureDiff|None):
     # IO: format and print message to user
     msg = (
@@ -101,6 +109,7 @@ def print_temperature(measurement: Measurement, diff: TemperatureDiff|None):
         )
     print(msg)
 
+
 def local_weather():
     # App logic (Use Case)
     ip_address = get_my_ip() # IO
@@ -110,6 +119,7 @@ def local_weather():
     diff = get_temp_diff(history, measurement) # App
     save_measurement(history, measurement, diff) # App, IO
     print_temperature(measurement, diff) # IO
+
 
 if __name__ == "__main__":
     local_weather()
