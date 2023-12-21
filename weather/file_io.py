@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from weather.typings import HistoryCityEntry, HistoryProvier
+from weather.typings import HistoryCityEntry, HistoryProvider
 
 
 class DatetimeJSONEncoder(json.JSONEncoder):
@@ -16,7 +16,7 @@ class DatetimeJSONEncoder(json.JSONEncoder):
         return super().default(o)
 
 
-class FileHistoryProvider(HistoryProvier):
+class FileHistoryProvider(HistoryProvider):
     def __init__(self):
         self.__path = Path("history.json")
         self.__history = None

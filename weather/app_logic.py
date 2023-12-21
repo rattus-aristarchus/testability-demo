@@ -8,7 +8,7 @@ from weather.typings import (
 import weather.console_io as console_io
 import weather.file_io as file_io
 import weather.web_io as web_io
-from weather.typings import HistoryProvier
+from weather.typings import HistoryProvider
 
 
 def get_temp_diff(
@@ -24,7 +24,7 @@ def get_temp_diff(
 
 
 def save_measurement(
-    historyProvider: HistoryProvier,
+    history_provider: HistoryProvider,
     measurement: Measurement,
     diff: TemperatureDiff|None
 ):
@@ -34,7 +34,7 @@ def save_measurement(
             temp=measurement.temp,
             feels=measurement.feels
         )
-        historyProvider.store(measurement.city, new_record)
+        history_provider.store(measurement.city, new_record)
 
 
 def local_weather():
@@ -47,18 +47,16 @@ def local_weather():
     city = web_io.get_city_by_ip(ip_address) # IO
 
     # Initialization
-    measure_temperature = web_io.init_temperature_service(file_io.load_secret)
+    weather_service = web_io.Openweathermap(file_io.load_secret)
 
-    measurement = measure_temperature(city) # IO
+    measurement = weather_service.measure_temperature(city) # IO
 
     # Initialization
-    historyProvider = file_io.FileHistoryProvider()
-    #load_last_measurement, save_city_measurement =\
-    #    file_io.initialize_history_io()
+    history_provider = file_io.FileHistoryProvider()
 
-    last_measurement = historyProvider.load(city) # IO
+    last_measurement = history_provider.load(city) # IO
 
     diff = get_temp_diff(last_measurement, measurement) # App
-    save_measurement(historyProvider, measurement, diff) # App
+    save_measurement(history_provider, measurement, diff) # App
 
     console_io.print_temperature(measurement, diff) # IO
