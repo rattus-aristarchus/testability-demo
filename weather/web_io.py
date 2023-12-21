@@ -18,6 +18,7 @@ def get_city_by_ip(ip_address: str) -> str:
 
 def init_temperature_service(load_secret: LoadSecretFunction) -> MeasureTemperatureFunction:
     api_key = load_secret("openweathermap.org")
+
     def measure_temperature(city: str) -> Measurement:
         url = (
             "https://api.openweathermap.org/data/2.5/weather?q={0}&"

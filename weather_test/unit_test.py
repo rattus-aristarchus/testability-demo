@@ -53,6 +53,7 @@ class __SaveSpy:
 @pytest.fixture
 def save_spy():
     spy = __SaveSpy()
+
     def __save(city, entry):
         spy.calls += 1
         spy.last_city = city
@@ -109,10 +110,12 @@ def test_measurement_with_old_diff_saved(save_spy, measurement):
 def test_city_by_current_ip_is_requested():
     def get_ip_stub(): return "1.2.3.4"
     captured_ip = None
+
     def get_city_spy(ip):
         nonlocal captured_ip
         captured_ip = ip
         raise ValueError()
+
     def dummy(*_): raise NotImplementedError()
 
     with pytest.raises(ValueError):
@@ -125,10 +128,12 @@ def test_temperature_of_current_city_is_requested():
     def get_ip_stub(): return "1.2.3.4"
     def get_city_stub(*_): return "New York"
     captured_city = None
+
     def measure_temperature(city):
         nonlocal captured_city
         captured_city = city
         raise ValueError()
+
     def dummy(*_): raise NotImplementedError()
 
     with pytest.raises(ValueError):
@@ -151,11 +156,13 @@ def test_new_measurement_is_saved(measurement):
     def last_measurement_stub(*_): return None
     captured_city = None
     captured_entry = None
+
     def save_measurement_spy(city, entry):
         nonlocal captured_city
         nonlocal captured_entry
         captured_city = city
         captured_entry = entry
+
     def show_temperature_stub(*_): pass
 
     local_weather(
@@ -179,15 +186,18 @@ def test_recent_measurement_is_not_saved(measurement):
     def get_ip_stub(): return "1.2.3.4"
     def get_city_stub(*_): return "Not used"
     def measure_temperature(*_): return measurement
+
     def last_measurement_stub(*_): return HistoryCityEntry(
         datetime(2023, 1, 1, 20, 0, 0),
         temp=10,
         feels=10,
     )
     called = False
+
     def save_measurement_spy(*_):
         nonlocal called
         called = True
+
     def show_temperature_stub(*_): pass
 
     local_weather(
@@ -206,6 +216,7 @@ def test_old_measurement_is_overwritten(measurement):
     def get_ip_stub(): return "1.2.3.4"
     def get_city_stub(*_): return "Not used"
     def measure_temperature(*_): return measurement
+
     def last_measurement_stub(*_): return HistoryCityEntry(
         datetime(2023, 1, 1, 17, 0, 0),
         temp=10,
@@ -213,11 +224,13 @@ def test_old_measurement_is_overwritten(measurement):
     )
     captured_city = None
     captured_entry = None
+
     def save_measurement_spy(city, entry):
         nonlocal captured_city
         nonlocal captured_entry
         captured_city = city
         captured_entry = entry
+
     def show_temperature_stub(*_): pass
 
     local_weather(
@@ -245,6 +258,7 @@ def test_measurement_without_diff_is_shown(measurement):
     def save_measurement_stub(*_): pass
     captured_measurement = None
     captured_diff = None
+
     def show_temperature_spy(measurement, diff):
         nonlocal captured_measurement
         nonlocal captured_diff
@@ -268,6 +282,7 @@ def test_measurement_with_diff_is_shown(measurement):
     def get_ip_stub(): return "1.2.3.4"
     def get_city_stub(*_): return "Not used"
     def measure_temperature(*_): return measurement
+
     def last_measurement_stub(*_): return HistoryCityEntry(
         when=datetime(2023, 1, 1, 20, 0, 0),
         temp=10,
@@ -276,6 +291,7 @@ def test_measurement_with_diff_is_shown(measurement):
     def save_measurement_stub(*_): pass
     captured_measurement = None
     captured_diff = None
+
     def show_temperature_spy(measurement, diff):
         nonlocal captured_measurement
         nonlocal captured_diff
@@ -297,7 +313,6 @@ def test_measurement_with_diff_is_shown(measurement):
         temp=-2,
         feels=2,
     )
-
 
 
 def test_app_crash_if_no_city(measurement):

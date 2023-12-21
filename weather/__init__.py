@@ -1,5 +1,6 @@
 from . import app_logic, web_io, file_io, console_io
 
+
 def local_weather(
     get_my_ip=None,
     get_city_by_ip=None,
@@ -21,5 +22,6 @@ def local_weather(
         save_city_measurement=save_city_measurement or default_save_city_measurement,
         show_temperature=show_temperature or console_io.print_temperature,
     )
+
 
 __all__ = ["local_weather"]
