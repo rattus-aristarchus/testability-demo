@@ -1,4 +1,5 @@
 import pytest
+import allure
 from datetime import datetime
 from weather import (
     get_my_ip,
@@ -27,6 +28,7 @@ def test_local_weather(capsys: pytest.CaptureFixture):
     )
 
 
+@allure.tag("slow")
 @pytest.mark.slow
 def test_get_my_ip_returns_something():
     # Raises if no a well-formed IP
@@ -47,6 +49,7 @@ def test_city_of_known_ip():
     assert get_city_by_ip("69.193.168.152") == "Astoria"
 
 
+@allure.tag("fast")
 @pytest.mark.fast
 def test_get_temp_diff_unknown_city():
     assert get_temp_diff({}, Measurement(
