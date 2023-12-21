@@ -3,6 +3,7 @@ import requests
 from pathlib import Path
 from datetime import datetime, timedelta
 
+
 def local_weather():
     # First, get the IP
     url = "https://api64.ipify.org?format=json"
@@ -16,7 +17,6 @@ def local_weather():
 
     with open("secrets.json", "r", encoding="utf-8") as file:
         owm_api_key = json.load(file)["openweathermap.org"]
-
 
     # Hit up a weather service for weather in that city
     url = (
@@ -67,6 +67,7 @@ def local_weather():
             f"Difference since then: {diff:.0f} (feels {diff_feels:.0f})"
         )
     print(msg)
+
 
 if __name__ == "__main__":
     local_weather()
