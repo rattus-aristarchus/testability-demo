@@ -27,6 +27,7 @@ def test_my_city_returns_something():
 def test_city_of_known_ip():
     assert get_city_by_ip("69.193.168.152") == "Astoria"
 
+
 @pytest.mark.fast
 def test_print_temperature_without_diff(capsys: pytest.CaptureFixture):
     print_temperature(

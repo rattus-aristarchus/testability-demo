@@ -34,10 +34,12 @@ LoadSecretFunction: TypeAlias = Callable[[str], str]
 MeasureTemperatureFunction: TypeAlias = Callable[[str], Measurement]
 SaveCityFunction: TypeAlias = Callable[[str, HistoryCityEntry], None]
 
+
 class HistoryProvier:
     @abstractmethod
     def load(self, city: str):
         raise NotImplementedError()
+
     @abstractmethod
     def store(self, city: str, city_measurement: HistoryCityEntry):
         raise NotImplementedError()

@@ -6,6 +6,7 @@ from typing import Any
 
 from weather.typings import HistoryCityEntry, HistoryProvier
 
+
 class DatetimeJSONEncoder(json.JSONEncoder):
     def default(self, o: Any) -> Any:
         if isinstance(o, datetime):
