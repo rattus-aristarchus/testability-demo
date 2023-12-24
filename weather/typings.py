@@ -35,23 +35,11 @@ MeasureTemperatureFunction: TypeAlias = Callable[[str], Measurement]
 SaveCityFunction: TypeAlias = Callable[[str, HistoryCityEntry], None]
 
 
-class HistoryProvider:
-
+class HistoryProvier:
     @abstractmethod
     def load(self, city: str):
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def store(self, city: str, city_measurement: HistoryCityEntry):
-        pass
-
-
-class TempService:
-
-    @abstractmethod
-    def __init__(self, load_secret: LoadSecretFunction):
-        pass
-
-    @abstractmethod
-    def measure_temperature(self, city: str) -> Measurement:
-        pass
+        raise NotImplementedError()
