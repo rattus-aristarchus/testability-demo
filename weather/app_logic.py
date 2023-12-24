@@ -2,13 +2,13 @@ from datetime import timedelta
 from weather.typings import (
     Measurement,
     TemperatureDiff,
+    SaveCityFunction,
     HistoryCityEntry,
 )
 
 import weather.console_io as console_io
 import weather.file_io as file_io
 import weather.web_io as web_io
-from weather.typings import HistoryProvier
 
 
 def get_temp_diff(
@@ -24,7 +24,7 @@ def get_temp_diff(
 
 
 def save_measurement(
-    historyProvider: HistoryProvier,
+    save_city: SaveCityFunction,
     measurement: Measurement,
     diff: TemperatureDiff|None
 ):
@@ -34,7 +34,7 @@ def save_measurement(
             temp=measurement.temp,
             feels=measurement.feels
         )
-        historyProvider.store(measurement.city, new_record)
+        save_city(measurement.city, new_record)
 
 
 def local_weather():
@@ -52,13 +52,12 @@ def local_weather():
     measurement = measure_temperature(city) # IO
 
     # Initialization
-    historyProvider = file_io.FileHistoryProvider()
-    #load_last_measurement, save_city_measurement =\
-    #    file_io.initialize_history_io()
+    load_last_measurement, save_city_measurement =\
+        file_io.initialize_history_io()
 
-    last_measurement = historyProvider.load(city) # IO
+    last_measurement = load_last_measurement(city) # IO
 
     diff = get_temp_diff(last_measurement, measurement) # App
-    save_measurement(historyProvider, measurement, diff) # App
+    save_measurement(save_city_measurement, measurement, diff) # App
 
     console_io.print_temperature(measurement, diff) # IO
