@@ -2,12 +2,13 @@ from datetime import timedelta
 from weather.typings import (
     GetCityFunction,
     GetIPFunction,
+    LoadCityFunction,
+    MeasureTemperatureFunction,
     Measurement,
     ShowTemperatureFunction,
     TemperatureDiff,
+    SaveCityFunction,
     HistoryCityEntry,
-    HistoryProvider,
-    TempService
 )
 
 
@@ -24,7 +25,7 @@ def get_temp_diff(
 
 
 def save_measurement(
-    history_provider: HistoryProvider,
+    save_city: SaveCityFunction,
     measurement: Measurement,
     diff: TemperatureDiff|None
 ):
@@ -34,15 +35,16 @@ def save_measurement(
             temp=measurement.temp,
             feels=measurement.feels
         )
-        history_provider.store(measurement.city, new_record)
+        save_city(measurement.city, new_record) # injected IO
 
 
 def local_weather(
     get_my_ip: GetIPFunction,
     get_city_by_ip: GetCityFunction,
+    measure_temperature: MeasureTemperatureFunction,
+    load_last_measurement: LoadCityFunction,
+    save_city_measurement: SaveCityFunction,
     show_temperature: ShowTemperatureFunction,
-    temp_service: TempService,
-    history_provider: HistoryProvider
 ):
     # App logic (Use Case)
     # Low-level dependencies are injected at runtime
@@ -53,8 +55,8 @@ def local_weather(
     city = get_city_by_ip(ip_address) # injected IO
     if city is None:
         raise ValueError("Cannot determine the city")
-    measurement = temp_service.measure_temperature(city) # injected IO
-    last_measurement = history_provider.load(city) # injected IO
+    measurement = measure_temperature(city) # injected IO
+    last_measurement = load_last_measurement(city) # injected IO
     diff = get_temp_diff(last_measurement, measurement) # App
-    save_measurement(history_provider, measurement, diff) # App (with injected IO)
+    save_measurement(save_city_measurement, measurement, diff) # App (with injected IO)
     show_temperature(measurement, diff) # injected IO
