@@ -47,7 +47,6 @@ def test_city_of_known_ip():
     assert get_city_by_ip("69.193.168.152") == "Astoria"
 
 
-@allure.tag("fast")
 @pytest.mark.fast
 def test_get_temp_diff_unknown_city():
     assert get_temp_diff({}, Measurement(
