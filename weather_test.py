@@ -1,5 +1,4 @@
 import pytest
-import allure
 from datetime import datetime
 from weather import (
     get_my_ip,
@@ -28,7 +27,6 @@ def test_local_weather(capsys: pytest.CaptureFixture):
     )
 
 
-@allure.tag("slow")
 @pytest.mark.slow
 def test_get_my_ip_returns_something():
     # Raises if no a well-formed IP
