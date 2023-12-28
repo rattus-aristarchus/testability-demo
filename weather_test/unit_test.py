@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
+
+import allure
 import pytest
 
 from weather.app_logic import get_temp_diff, save_measurement, local_weather
@@ -125,6 +127,7 @@ def test_city_by_current_ip_is_requested():
 
 
 def test_temperature_of_current_city_is_requested():
+    """Make sure that local_weather uses the correct city"""
     def get_ip_stub(): return "1.2.3.4"
     def get_city_stub(*_): return "New York"
     captured_city = None
@@ -132,10 +135,13 @@ def test_temperature_of_current_city_is_requested():
     def measure_temperature(city):
         nonlocal captured_city
         captured_city = city
+        # Execution of local_weather will stop here
         raise ValueError()
 
     def dummy(*_): raise NotImplementedError()
 
+    # We don't care about most of local_weather's execution,
+    # so we can pass dummies that will never be called
     with pytest.raises(ValueError):
         local_weather(
             get_ip_stub,
@@ -149,14 +155,23 @@ def test_temperature_of_current_city_is_requested():
     assert captured_city == "New York"
 
 
+@allure.title("Use case should save measurement if no previous entries exist")
 def test_new_measurement_is_saved(measurement):
+    # We don't care about this value:
     def get_ip_stub(): return "1.2.3.4"
+    # Nor this:
     def get_city_stub(*_): return "Not used"
+    # This is the thing we'll check for:
     def measure_temperature(*_): return measurement
+    # With this, local_weather will think there is
+    # no last measurement on disk:
     def last_measurement_stub(*_): return None
+
     captured_city = None
     captured_entry = None
 
+    # This spy will see what local_weather tries to
+    # write to disk:
     def save_measurement_spy(city, entry):
         nonlocal captured_city
         nonlocal captured_entry
@@ -182,6 +197,7 @@ def test_new_measurement_is_saved(measurement):
     )
 
 
+@allure.title("Use case should not save measurement if a recent entry exists")
 def test_recent_measurement_is_not_saved(measurement):
     def get_ip_stub(): return "1.2.3.4"
     def get_city_stub(*_): return "Not used"
