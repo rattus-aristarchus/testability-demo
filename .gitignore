@@ -161,3 +161,7 @@ cython_debug/
 
 /secrets.json
 /history.json
+
+# Allure
+
+allure-results/
