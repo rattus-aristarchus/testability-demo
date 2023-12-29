@@ -21,6 +21,15 @@ def measurement():
     )
 
 
+@pytest.fixture()
+def history_city_entry():
+    yield HistoryCityEntry(
+        when=datetime(2023, 1, 2, 0, 0, 0),
+        temp=8,
+        feels=12
+    )
+
+
 def test_get_temp_diff_unknown_city():
     assert get_temp_diff(None, Measurement(
         city="New York",
@@ -63,18 +72,14 @@ def save_spy():
     yield __save, spy
 
 
-def test_measurement_with_no_diff_saved(save_spy, measurement):
+def test_measurement_with_no_diff_saved(save_spy, measurement, history_city_entry):
     save, spy = save_spy
 
     save_measurement(save, measurement, None)
 
     assert spy.calls == 1
     assert spy.last_city == "New York"
-    assert spy.last_entry == HistoryCityEntry(
-        when=datetime(2023, 1, 2, 0, 0, 0),
-        temp=8,
-        feels=12,
-    )
+    assert spy.last_entry == history_city_entry
 
 
 def test_measurement_with_recent_diff_not_saved(save_spy, measurement):
@@ -90,7 +95,7 @@ def test_measurement_with_recent_diff_not_saved(save_spy, measurement):
     assert not spy.calls
 
 
-def test_measurement_with_old_diff_saved(save_spy, measurement):
+def test_measurement_with_old_diff_saved(save_spy, measurement, history_city_entry):
     save, spy = save_spy
 
     # More than 6 hours have passed
@@ -102,11 +107,7 @@ def test_measurement_with_old_diff_saved(save_spy, measurement):
 
     assert spy.calls == 1
     assert spy.last_city == "New York"
-    assert spy.last_entry == HistoryCityEntry(
-        when=datetime(2023, 1, 2, 0, 0, 0),
-        temp=8,
-        feels=12,
-    )
+    assert spy.last_entry == history_city_entry
 
 
 def test_city_by_current_ip_is_requested():
@@ -126,8 +127,8 @@ def test_city_by_current_ip_is_requested():
     assert captured_ip == "1.2.3.4"
 
 
+@allure.title("local_weather should use the city that is passed to it")
 def test_temperature_of_current_city_is_requested():
-    """Make sure that local_weather uses the correct city"""
     def get_ip_stub(): return "1.2.3.4"
     def get_city_stub(*_): return "New York"
     captured_city = None
@@ -156,9 +157,9 @@ def test_temperature_of_current_city_is_requested():
 
 
 @allure.title("Use case should save measurement if no previous entries exist")
-def test_new_measurement_is_saved(measurement):
+def test_new_measurement_is_saved(measurement, history_city_entry):
     # We don't care about this value:
-    def get_ip_stub(): return "1.2.3.4"
+    def get_ip_stub(): return "Not used"
     # Nor this:
     def get_city_stub(*_): return "Not used"
     # This is the thing we'll check for:
@@ -190,11 +191,7 @@ def test_new_measurement_is_saved(measurement):
     )
 
     assert captured_city == "New York"
-    assert captured_entry == HistoryCityEntry(
-        when=datetime(2023, 1, 2, 0, 0, 0),
-        temp=8,
-        feels=12,
-    )
+    assert captured_entry == history_city_entry
 
 
 @allure.title("Use case should not save measurement if a recent entry exists")
@@ -228,7 +225,7 @@ def test_recent_measurement_is_not_saved(measurement):
     assert not called
 
 
-def test_old_measurement_is_overwritten(measurement):
+def test_old_measurement_is_overwritten(measurement, history_city_entry):
     def get_ip_stub(): return "1.2.3.4"
     def get_city_stub(*_): return "Not used"
     def measure_temperature(*_): return measurement
@@ -259,11 +256,7 @@ def test_old_measurement_is_overwritten(measurement):
     )
 
     assert captured_city == "New York"
-    assert captured_entry == HistoryCityEntry(
-        when=datetime(2023, 1, 2, 0, 0, 0),
-        temp=8,
-        feels=12,
-    )
+    assert captured_entry == history_city_entry
 
 
 def test_measurement_without_diff_is_shown(measurement):
