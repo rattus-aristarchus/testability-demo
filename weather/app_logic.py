@@ -28,6 +28,9 @@ def save_measurement(
     measurement: Measurement,
     diff: TemperatureDiff|None
 ):
+    """
+    If enough time has passed since last measurement, save measurement.
+    """
     if diff is None or (measurement.when - diff.when) > timedelta(hours=6):
         new_record = HistoryCityEntry(
             when=measurement.when,

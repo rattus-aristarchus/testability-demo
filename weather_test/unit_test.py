@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
+
+import allure
 import pytest
 
 from weather.app_logic import get_temp_diff, save_measurement
@@ -53,6 +55,7 @@ class __SaveSpy:
 @pytest.fixture
 def save_spy():
     spy = __SaveSpy()
+
     def __save(city, entry):
         spy.calls += 1
         spy.last_city = city
@@ -60,6 +63,7 @@ def save_spy():
     yield __save, spy
 
 
+@allure.title("save_measurement should save if no previous measurements exist")
 def test_measurement_with_no_diff_saved(save_spy, measurement):
     save, spy = save_spy
 
@@ -74,6 +78,7 @@ def test_measurement_with_no_diff_saved(save_spy, measurement):
     )
 
 
+@allure.title("save_measurement should not save if a recent measurement exists")
 def test_measurement_with_recent_diff_not_saved(save_spy, measurement):
     save, spy = save_spy
 
@@ -87,6 +92,7 @@ def test_measurement_with_recent_diff_not_saved(save_spy, measurement):
     assert not spy.calls
 
 
+@allure.title("save_measurement should save if enough time has passed since last measurement")
 def test_measurement_with_old_diff_saved(save_spy, measurement):
     save, spy = save_spy
 
